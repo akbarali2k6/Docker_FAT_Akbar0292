@@ -6,17 +6,18 @@ pipeline {
         IMAGE_NAME = "docker-fat-app"
         TAG = "latest"
     }
-    stage('Fix Docker Path') {
-    steps {
-        sh '''
-        export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin
-        which docker
-        docker --version
-        '''
-    }
-}
 
     stages {
+
+        stage('Fix Docker Path') {
+            steps {
+                sh '''
+                export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin
+                which docker
+                docker --version
+                '''
+            }
+        }
 
         stage('Checkout Code') {
             steps {
@@ -25,40 +26,38 @@ pipeline {
             }
         }
 
-        stage('Verify Docker') {
-    steps {
-        sh '/usr/local/bin/docker --version'
-    }
-}
-
-stage('Build Docker Image') {
-    steps {
-        sh '/usr/local/bin/docker build -t $DOCKER_USER/$IMAGE_NAME:$TAG .'
-    }
-}
-
-stage('Login to DockerHub') {
-    steps {
-        withCredentials([usernamePassword(
-            credentialsId: 'dockerhub-cred',
-            usernameVariable: 'USER',
-            passwordVariable: 'PASS'
-        )]) {
-            sh 'echo $PASS | /usr/local/bin/docker login -u $USER --password-stdin'
-        }
-    }
-}
-
-stage('Push Image') {
-    steps {
-        sh '/usr/local/bin/docker push $DOCKER_USER/$IMAGE_NAME:$TAG'
-    }
-}
-
-        stage('Run Container') {
+        stage('Build Docker Image') {
             steps {
-                sh 'docker run -d -p 5000:5000 $DOCKER_USER/$IMAGE_NAME:$TAG'
+                sh '''
+                export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin
+                docker build -t $DOCKER_USER/$IMAGE_NAME:$TAG .
+                '''
             }
         }
+
+        stage('Login to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-cred',
+                    usernameVariable: 'USER',
+                    passwordVariable: 'PASS'
+                )]) {
+                    sh '''
+                    export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin
+                    echo $PASS | docker login -u $USER --password-stdin
+                    '''
+                }
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                sh '''
+                export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin
+                docker push $DOCKER_USER/$IMAGE_NAME:$TAG
+                '''
+            }
+        }
+
     }
 }
