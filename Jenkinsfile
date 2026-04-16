@@ -6,6 +6,15 @@ pipeline {
         IMAGE_NAME = "docker-fat-app"
         TAG = "latest"
     }
+    stage('Fix Docker Path') {
+    steps {
+        sh '''
+        export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin
+        which docker
+        docker --version
+        '''
+    }
+}
 
     stages {
 
