@@ -11,3 +11,4 @@
 
 ## Docker Image
 akbaraliiii/docker-fat-app:latest
+//AKBAR-0292-LAB FAT
